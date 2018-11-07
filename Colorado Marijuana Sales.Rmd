@@ -1,0 +1,57 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## retrieve and prepare the previously cleaned csv file (Merged_County_Sales.csv)
+
+```{r}
+library(stringr)
+library(dplyr)
+library(formattable)
+library(ggplot2)
+
+#retrieve manually cleaned file
+merged_county_sales <- read.csv("C:/Users/David/Desktop/MSDS696/Colorado MJ Datasets/Merged_County_Sales.csv", header=TRUE, colClasses = c("character", "character", "factor", "character", "character"))
+
+#opens in new window
+#View(merged_county_sales)
+
+#convert date field to R recognized date format
+merged_county_sales$Date <- as.Date(merged_county_sales$Date)
+
+
+#convert currency fields to numeric from factor
+merged_county_sales$Med_County_Sales <- as.numeric(as.character(merged_county_sales$Med_County_Sales))
+merged_county_sales$Rec_County_Sales <- as.numeric(as.character(merged_county_sales$Rec_County_Sales))
+
+#convert to currency
+merged_county_sales$Med_County_Sales <- currency(merged_county_sales$Med_County_Sales, symbol="$", big.mark=",", digits = 0L)
+merged_county_sales$Rec_County_Sales <- currency(merged_county_sales$Rec_County_Sales, symbol="$", big.mark=",", digits = 0L)
+
+summary(merged_county_sales)
+
+summary(merged_county_sales$Rec_County_Sales)
+
+ggplot(data=merged_county_sales, mapping=aes(x=Date))+
+  geom_bar(mapping=aes(y=Rec_County_Sales/1000000), stat="identity", position="dodge", fill="green")+
+  geom_bar(mapping=aes(y=Med_County_Sales/1000000), stat="identity", position="dodge", fill="red")+
+  labs(title="Colorado Medical and Retail Marijuana Sales 2014-2018", x= "Year", y= "Sales per $1M")
+
+ggplot(data=merged_county_sales, aes(x=as.factor(merged_county_sales$County)))+
+  geom_boxplot(aes(y=Rec_County_Sales/1000000), color="green")+
+  geom_boxplot(aes(y=Med_County_Sales/1000000), color="red")+
+  labs(title="Colorado Retail and Medical Marijuana Sales since 2014", x= "Colorado County", y= "Sales per $1M")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

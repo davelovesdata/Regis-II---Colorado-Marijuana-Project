@@ -14,18 +14,14 @@ library(ggplot2)
 #retrieve manually cleaned file
 merged_county_sales <- read.csv("C:/Users/David/Desktop/MSDS696/Colorado MJ Datasets/Merged_County_Sales.csv", header=TRUE, colClasses = c("character", "character", "factor", "character", "character"))
 
-#opens in new window
-#View(merged_county_sales)
-
 #convert date field to R recognized date format
 merged_county_sales$Date <- as.Date(merged_county_sales$Date)
 
-
-#convert currency fields to numeric from factor
+#convert currency fields from factor to numeric
 merged_county_sales$Med_County_Sales <- as.numeric(as.character(merged_county_sales$Med_County_Sales))
 merged_county_sales$Rec_County_Sales <- as.numeric(as.character(merged_county_sales$Rec_County_Sales))
 
-#convert to currency
+#convert currency fields from numeric to currency
 merged_county_sales$Med_County_Sales <- currency(merged_county_sales$Med_County_Sales, symbol="$", big.mark=",", digits = 0L)
 merged_county_sales$Rec_County_Sales <- currency(merged_county_sales$Rec_County_Sales, symbol="$", big.mark=",", digits = 0L)
 
@@ -33,21 +29,208 @@ summary(merged_county_sales)
 
 summary(merged_county_sales$Rec_County_Sales)
 
+options(scipen=10)
+
 ggplot(data=merged_county_sales, mapping=aes(x=Date))+
-  geom_bar(mapping=aes(y=Rec_County_Sales/1000000), stat="identity", position="dodge", fill="green")+
-  geom_bar(mapping=aes(y=Med_County_Sales/1000000), stat="identity", position="dodge", fill="red")+
-  labs(title="Colorado Medical and Retail Marijuana Sales 2014-2018", x= "Year", y= "Sales per $1M")
+  geom_bar(mapping=aes(y=Rec_County_Sales/100000), stat="identity", position="dodge", fill="green")+
+  geom_bar(mapping=aes(y=Med_County_Sales/100000), stat="identity", position="dodge", fill="red")+
+  labs(title="Colorado Medical and Retail Marijuana Sales 2014-2018", x= "Years of Recreational Legalization", y= "Sales per $100K")+
+  theme_bw()
 
 ggplot(data=merged_county_sales, aes(x=as.factor(merged_county_sales$County)))+
-  geom_boxplot(aes(y=Rec_County_Sales/1000000), color="green")+
-  geom_boxplot(aes(y=Med_County_Sales/1000000), color="red")+
-  labs(title="Colorado Retail and Medical Marijuana Sales since 2014", x= "Colorado County", y= "Sales per $1M")+
+  geom_boxplot(aes(y=Rec_County_Sales), color="green")+
+  geom_boxplot(aes(y=Med_County_Sales), color="red")+
+  labs(title="Colorado Retail and Medical Marijuana Sales since 2014", x= "Colorado County", y= "Sales")+
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+### investigate county sales by year
+Year <- as.integer(paste(word(merged_county_sales$Date, 1, sep="-")))
+merged_county_sales <- cbind(merged_county_sales, Year)
+
+#x <- group_by(merged_county_sales, Year)
+#x <- summarize(Year, Med_County_Sales = sum(Med_County_Sales))
+#x
+
+
+#write.csv(merged_county_sales, file = "merged_county_sales.csv")
 
 ```
 
 
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+
+colopop_df <- as.data.frame(read.csv("C:/Users/David/Desktop/MSDS696/Colorado Demographics/CountyPopulation.csv", col.names=c("CountyFIPS", "Area", "Year", "Population"), colClasses = c("character", "factor", "factor", "numeric")))
+
+state_pop <- filter(colopop_df, Area == "COLORADO STATE")
+county_pop <- filter(colopop_df, Area != "COLORADO STATE")
+
+summary(state_pop)
+
+options(scipen=10)
+
+#View(state_pop)
+
+ggplot(data=state_pop, mapping=aes(x=Year, y=Population, group=Area))+
+  geom_line(color="red")+
+  geom_point(color="red")+
+  scale_y_continuous(limits = c(min(state_pop$Population), max(state_pop$Population)))+
+   geom_label_repel(aes(label = Population), nudge_x = 1)+
+  labs(title="Colorado Estimated Population Growth since 2010 Census")+
+  theme_bw()
+ 
+```
+
+```{r}
+#retrieve manually cleaned file
+#library(readr)
+#library(dplyr)
+#library(ggplot2)
+
+#co_pop <- as.data.frame(read.csv("C:/Users/David/Desktop/MSDS696/Colorado Demographics/CountyRankings.csv", col.names=c("CountyFIPS", "County", "pop_2010", "pop_2011", "pop_2012", "pop_2013", "pop_2014", "pop_2015", "pop_2016", "pop_2017", "rank_2017"), colClasses = c("character", "factor", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "integer")))
+
+#state_pop <- co_pop[1, -1]
+#county_pop <- co_pop[-1, -1]
+
+#reorder by city population rank (2017)
+#county_pop <- county_pop[order(county_pop$rank_2017), ]
+#county_pop <- county_pop[1:20, ]
+
+#county_pop.f1 <- filter(county_pop, pop_2010 >= 100000)
+#county_pop.f2 <- filter(county_pop, pop_2010 < 100000 & pop_2010 > 25000)
+#county_pop.f3 <- filter(county_pop, pop_2010 < 25000)
+
+#rm(co_pop)
+
+#View(county_pop)
+
+#transpose_df <- as.data.frame(t(county_pop))
+#View(county_pop)
+
+#options(scipen=10)
+
+#ggplot(data=county_pop.f1, mapping=aes(x=County))+
+  #geom_col(mapping=aes(y=pop_2017, fill="2017"), position = "dodge")+
+  #geom_col(mapping=aes(y=pop_2014, fill="2014"), position = "dodge")+
+  #geom_col(mapping=aes(y=pop_2010, fill="2010"), position = "dodge")+
+  #labs(title="", x= "Colorado County", y= "Sales per $1M")+
+  #theme_bw()+
+  #theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#ggplot(data=county_pop.f2, mapping=aes(x=County))+
+  #geom_col(mapping=aes(y=pop_2017, fill="2017"), position = "dodge")+
+  #geom_col(mapping=aes(y=pop_2014, fill="2014"), position = "dodge")+
+  #geom_col(mapping=aes(y=pop_2010, fill="2010"), position = "dodge")+
+  #labs(title="", x= "Colorado County", y= "Sales per $1M")+
+  #theme_bw()+
+  #theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#ggplot(data=county_pop.f3, mapping=aes(x=County))+
+  #geom_col(mapping=aes(y=pop_2017, fill="2017"), position = "dodge")+
+  #geom_col(mapping=aes(y=pop_2014, fill="2014"), position = "dodge")+
+  #geom_col(mapping=aes(y=pop_2010, fill="2010"), position = "dodge")+
+  #labs(title="", x= "Colorado County", y= "Sales per $1M")+
+  #theme_bw()+
+  #theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r}
+library(ggrepel)
+library(ggplot2)
+
+co_sin_tax <- as.data.frame(read.csv("C:/Users/David/Desktop/MSDS696/colorado_sin_revenue.csv"))
+
+summary(co_sin_tax)
+
+options(scipen=10)
+
+#create a dataframe with the sin tax and co population data. the data will need to be normalized.
+
+df <- co_sin_tax
+df <- merge(co_sin_tax, state_pop)
+
+df$med_marijuana_tax <- currency(df$med_marijuana_tax, symbol="$", big.mark=",", digits = 0L)
+df$rec_marijuana_tax <- currency(df$rec_marijuana_tax, symbol="$", big.mark=",", digits = 0L)
+df$alcohol_tax <- currency(df$alcohol_tax, symbol="$", big.mark=",", digits = 0L)
+df$tobacco_tax <- currency(df$tobacco_tax, symbol="$", big.mark=",", digits = 0L)
+df$gambling <- currency(df$gambling, symbol="$", big.mark=",", digits = 0L)
+
+ggplot(data=df, mapping=aes(x = Year)) +
+  geom_point(aes(y=rec_marijuana_tax/100000, color="Recreational Marijuana"))+
+  geom_line(aes(y=rec_marijuana_tax/100000, color="Recreational Marijuana"), size=2)+
+  geom_point(aes(y=alcohol_tax/100000, color="Alcohol"))+
+  geom_line(aes(y=alcohol_tax/100000, color="Alcohol"))+
+  geom_point(aes(y=tobacco_tax/100000, color="Tobacco"))+
+  geom_line(aes(y=tobacco_tax/100000, color="Tobacco"))+
+  geom_point(aes(y=gambling/100000, color="Gambling"))+
+  geom_line(aes(y=gambling/100000, color="Gambling"))+
+  geom_label_repel(aes(y=rec_marijuana_tax/100000, label=rec_marijuana_tax), nudge_x = 0, nudge_y = -200)+
+  scale_colour_manual("", 
+                      breaks = c("Medical Marijuana", "Recreational Marijuana", "Alcohol", "Tobacco", "Gambling"),
+                      values = c("Medical Marijuana"="green", "Recreational Marijuana"="red", 
+                                 "Alcohol"="purple", "Tobacco"="blue", "Gambling"="orange"))+
+  labs(title="Comparisons of Colorado 'sin' Taxes 2013-2017", x= "Year", y= "Colorado Marijuana Revenue per $100K")+
+  theme_bw()+
+  theme(legend.position="top")
+
+###perform correlation analysis - I don't think really tells me anything of value. 
+
+#scale the data
+#df_year <- df[1]
+#df_scaled <- df[c(2:6,9)]
+#df_scaled <- cbind(df_year, df_scaled)
+
+#library(corrplot)
+#m <- cor(df_scaled[-1, 2:6])
+#corrplot(m, type = "lower", order = "hclust", method="number")
+
+View(df)
+
+
+```
+
+```{r}
+
+library(stringr)
+library(dplyr)
+library(formattable)
+library(ggplot2)
+
+merged_county_sales2 <- read.csv("C:/Users/David/Desktop/MSDS696/Colorado MJ Datasets/Merged_County_Sales_v2.csv", header=TRUE)
+#merged_county_sales2 <- as.data.frame(read.csv("C:/Users/David/Desktop/MSDS696/Colorado MJ Datasets/Merged_County_Sales_v2.csv", header=TRUE, colClasses = c("character", "character", "factor", "numeric", "numeric", "integer", "numeric", "numeric", "numeric")))
+
+merged_county_sales2$Med_County_Sales <- currency(merged_county_sales2$Med_County_Sales, symbol="$", big.mark=",", digits = 0L)
+merged_county_sales2$Rec_County_Sales <- currency(merged_county_sales2$Rec_County_Sales, symbol="$", big.mark=",", digits = 0L)
+
+summary(merged_county_sales2)
+
+ggplot(data=merged_county_sales2, mapping=aes(x=Year))+
+  geom_col(mapping=aes(y=Rec_County_Sales/100000), fill="green")+
+  geom_col(mapping=aes(y=Med_County_Sales/100000), fill="red", alpha=.9)+
+  labs(title="Colorado Medical and Retail Marijuana Sales 2014-2018", x= "Years of Recreational Legalization", y= "Sales per $100K")+
+  theme_bw()
+
+#test <- merged_county_sales2[order(merged_county_sales2$Rec_County_Sales, merged_county_sales2$County),] 
+
+ggplot(data=merged_county_sales2, aes(x=County))+
+  geom_boxplot(aes(y=Rec_County_Sales/100000), color="green")+
+  geom_boxplot(aes(y=Med_County_Sales/100000), color="red")+
+  labs(title="Colorado Retail and Medical Marijuana Sales since 2014", x= "Colorado County", y= "Sales")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90))
+
+ggplot(data=merged_county_sales2, mapping=aes(x = Year)) +
+  geom_col(aes(y=County_Population, color="County_Population"))
+
+View(merged_county_sales2)
+
+
+
+```
 
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.

@@ -64,7 +64,7 @@ library(dplyr)
 library(ggplot2)
 library(ggrepel)
 
-colopop_df <- as.data.frame(read.csv("C:/Users/David/Desktop/MSDS696/Colorado Demographics/CountyPopulation.csv", col.names=c("CountyFIPS", "Area", "Year", "Population"), colClasses = c("character", "factor", "factor", "numeric")))
+colopop_df <- as.data.frame(read.csv("CountyPopulation.xls", col.names=c("CountyFIPS", "Area", "Year", "Population"), colClasses = c("character", "factor", "factor", "numeric")))
 
 state_pop <- filter(colopop_df, Area == "COLORADO STATE")
 county_pop <- filter(colopop_df, Area != "COLORADO STATE")
@@ -142,7 +142,7 @@ ggplot(data=state_pop, mapping=aes(x=Year, y=Population, group=Area))+
 library(ggrepel)
 library(ggplot2)
 
-co_sin_tax <- as.data.frame(read.csv("C:/Users/David/Desktop/MSDS696/colorado_sin_revenue.csv"))
+co_sin_tax <- as.data.frame(read.csv("colorado_sin_revenue.csv"))
 
 summary(co_sin_tax)
 
